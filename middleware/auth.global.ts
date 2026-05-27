@@ -10,29 +10,25 @@ export default defineNuxtRouteMiddleware((to) => {
 
   const path = to.path
 
-  // Skip login pages
-  if (path.match(/^\/[^/]+\/login$/)) return
-
-  // Allow admin routes (super-admin only)
-  if (path.startsWith('/admin')) return
+  // Skip the root login page (public, no auth needed)
+  if (path === '/') return
 
   // Extract company from URL path
+  if (path.startsWith('/admin')) return
+
   const companyMatch = path.match(/^\/([^/]+)\//)
   const companyInPath = companyMatch ? companyMatch[1] : null
 
-  // Not authenticated - redirect to login for that company
+  // Not authenticated - redirect to root login
   if (!authStore.isAuthenticated) {
-    if (companyInPath) {
-      return navigateTo(`/${companyInPath}/login`)
-    }
     return navigateTo('/')
   }
 
   // Authenticated - check company access
   if (companyInPath && authStore.currentCompanySlug) {
-    // If user's company_slug doesn't match URL, redirect to their company
+    // If user's company_slug doesn't match URL, redirect to their company dashboard
     if (authStore.currentCompanySlug !== companyInPath) {
-      return navigateTo(`/${authStore.currentCompanySlug}/login`)
+      return navigateTo(`/${authStore.currentCompanySlug}/dashboard`)
     }
   }
-})
+})

@@ -17,7 +17,7 @@
         <button
           @click="exportByWorker"
           :disabled="!selectedExportWorker || loading"
-          class="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700 disabled:opacity-50"
+          class="bg-primary text-primary-content px-4 py-2 rounded-lg flex items-center gap-2 hover:opacity-90 disabled:opacity-50"
         >
           <Icon name="heroicons:user-plus" class="w-5 h-5" />
           Exportar Trabajador
@@ -48,7 +48,7 @@
         <button
           type="submit"
           :disabled="!selectedWorker || loading"
-          class="bg-primary-600 text-white px-6 py-2 rounded-lg hover:bg-primary-700 disabled:opacity-50"
+          class="bg-primary text-primary-content px-6 py-2 rounded-lg hover:opacity-90 disabled:opacity-50"
         >
           {{ loading ? 'Registrando...' : 'Registrar' }}
         </button>
@@ -93,7 +93,7 @@
         </div>
         <button
           @click="applyFilters"
-          class="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700"
+          class="bg-primary text-primary-content px-4 py-2 rounded-lg hover:opacity-90"
         >
           Filtrar
         </button>

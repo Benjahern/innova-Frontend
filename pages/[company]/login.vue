@@ -50,8 +50,11 @@
         <button
           type="submit"
           :disabled="loading"
-          class="w-full text-white py-3 rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          :style="{ backgroundColor: config.theme?.primary_color || '#3B82F6' }"
+          class="w-full py-3 rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          :style="{ 
+            backgroundColor: config.theme?.primary_color || '#3B82F6',
+            color: getContrastColor(config.theme?.primary_color || '#3B82F6')
+          }"
         >
           {{ loading ? 'Ingresando...' : 'Iniciar Sesion' }}
         </button>
@@ -89,7 +92,18 @@ const error = ref('')
 const transformLogoUrl = (logoPath) => {
   if (!logoPath) return null
   const filename = logoPath.replace('/uploads/logos/', '')
-  return `/api/v1/public/logos/${filename}`
+  const runtimeConfig = useRuntimeConfig()
+  return `${runtimeConfig.public.apiBase}/public/logos/${filename}`
+}
+
+const getContrastColor = (hex) => {
+  if (!hex) return '#ffffff'
+  const color = hex.charAt(0) === '#' ? hex.substring(1, 7) : hex
+  const r = parseInt(color.substring(0, 2), 16)
+  const g = parseInt(color.substring(2, 4), 16)
+  const b = parseInt(color.substring(4, 6), 16)
+  const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000
+  return (yiq >= 128) ? '#000000' : '#ffffff'
 }
 
 onMounted(async () => {

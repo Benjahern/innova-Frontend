@@ -7,7 +7,7 @@
       </div>
       <button
         @click="openModal()"
-        class="bg-primary-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-primary-700 transition"
+        class="bg-primary text-primary-content px-4 py-2 rounded-lg flex items-center gap-2 hover:opacity-90 transition"
       >
         <Icon name="heroicons:plus" class="w-5 h-5" />
         Agregar Trabajador
@@ -43,7 +43,7 @@
                 :class="[
                   'px-2 py-1 text-xs rounded-full',
                   worker.rol === 'admin' ? 'bg-purple-100 text-purple-700' :
-                  worker.rol === 'manager' ? 'bg-blue-100 text-blue-700' :
+                  worker.rol === 'manager' ? 'bg-primary/10 text-primary' :
                   'bg-gray-100 text-gray-700'
                 ]"
               >
@@ -71,7 +71,7 @@
             </td>
             <td class="px-6 py-4" @click.stop>
               <div class="flex gap-2">
-                <button @click="openModal(worker)" class="text-primary-600 hover:text-primary-800">
+                <button @click="openModal(worker)" class="text-primary hover:text-primary-800">
                   <Icon name="heroicons:pencil" class="w-5 h-5" />
                 </button>
                 <button @click="confirmDelete(worker)" class="text-red-600 hover:text-red-800">
@@ -123,7 +123,7 @@
                 <span :class="[
                   'px-2 py-1 text-xs rounded-full',
                   selectedWorker?.rol === 'admin' ? 'bg-purple-100 text-purple-700' :
-                  selectedWorker?.rol === 'manager' ? 'bg-blue-100 text-blue-700' :
+                  selectedWorker?.rol === 'manager' ? 'bg-primary/10 text-primary' :
                   'bg-gray-100 text-gray-700'
                 ]">
                   {{ selectedWorker?.rol }}
@@ -135,9 +135,9 @@
 
         <!-- Stats -->
         <div class="grid grid-cols-3 gap-4 mb-6">
-          <div class="bg-blue-50 rounded-lg p-4 text-center">
-            <p class="text-2xl font-bold text-blue-600">{{ workerStats?.hours_week?.toFixed(1) || '0' }}h</p>
-            <p class="text-xs text-blue-600">Horas Semana</p>
+          <div class="bg-primary/5 rounded-lg p-4 text-center">
+            <p class="text-2xl font-bold text-primary">{{ workerStats?.hours_week?.toFixed(1) || '0' }}h</p>
+            <p class="text-xs text-primary">Horas Semana</p>
           </div>
           <div class="bg-red-50 rounded-lg p-4 text-center">
             <p class="text-2xl font-bold text-red-600">{{ workerStats?.arrears_minutes || 0 }}min</p>
@@ -173,7 +173,7 @@
         <!-- This Week Attendance -->
         <div>
           <h4 class="font-semibold text-gray-700 mb-3 flex items-center gap-2">
-            <Icon name="heroicons:clock" class="w-5 h-5 text-blue-500" />
+            <Icon name="heroicons:clock" class="w-5 h-5 text-primary" />
             Asistencia Esta Semana
           </h4>
           <div v-if="weekLogs.length > 0" class="space-y-2">
@@ -182,7 +182,7 @@
               :key="log.log_id"
               :class="[
                 'flex items-center justify-between rounded-lg p-3',
-                log.type === 'checkin' ? 'bg-blue-50' : 'bg-gray-50'
+                log.type === 'checkin' ? 'bg-primary/5' : 'bg-gray-50'
               ]"
             >
               <div class="flex items-center gap-3">
@@ -275,7 +275,7 @@
             <button type="button" @click="closeModal" class="flex-1 px-4 py-2 border rounded-lg hover:bg-gray-50">
               Cancelar
             </button>
-            <button type="submit" class="flex-1 bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700">
+            <button type="submit" class="flex-1 bg-primary text-primary-content px-4 py-2 rounded-lg hover:opacity-90">
               Guardar
             </button>
           </div>

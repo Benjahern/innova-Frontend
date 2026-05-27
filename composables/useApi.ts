@@ -25,7 +25,7 @@ export const useApi = () => {
     } catch (error) {
       if (error.response?.status === 401) {
         const companyMatch = route.path.match(/^\/([^/]+)\//)
-        const company = companyMatch ? companyMatch[1] : null
+        const company = companyMatch ? decodeURIComponent(companyMatch[1]) : null
 
         authStore.logout()
 

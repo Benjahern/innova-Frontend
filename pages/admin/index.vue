@@ -1,11 +1,23 @@
 <template>
   <div class="min-h-screen bg-gray-100">
-    <nav class="bg-white shadow-sm">
+    <nav id="admin-navbar" class="bg-white shadow-sm">
       <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
         <h1 class="text-2xl font-bold text-gray-800">Panel de Administracion</h1>
-        <div class="flex items-center gap-4">
+        <div class="flex items-center gap-3">
           <span class="text-gray-600">{{ authStore.user && authStore.user.email ? authStore.user.email : '' }}</span>
-          <button @click="handleLogout" class="text-red-600 hover:underline">Cerrar sesion</button>
+          <!-- Tutorial btn -->
+          <button
+            id="admin-tutorial-btn"
+            @click="startAdminTour"
+            class="flex items-center gap-1.5 text-sm text-gray-500 hover:text-primary-600 border border-gray-200 hover:border-primary-300 px-3 py-1.5 rounded-lg transition-colors"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z"/>
+            </svg>
+            Tutorial
+          </button>
+          <button @click="handleLogout" class="text-red-600 hover:underline text-sm">Cerrar sesion</button>
         </div>
       </div>
     </nav>
@@ -13,7 +25,7 @@
     <div class="max-w-7xl mx-auto px-4 py-8">
       <div class="flex justify-between items-center mb-8">
         <h2 class="text-xl font-semibold text-gray-700">Empresas ({{ adminStore.total }})</h2>
-        <NuxtLink to="/admin/create" class="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700">
+        <NuxtLink id="admin-new-company-btn" to="/admin/create" class="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700">
           + Nueva Empresa
         </NuxtLink>
       </div>
@@ -26,7 +38,7 @@
         {{ error }}
       </div>
 
-      <div v-else class="bg-white rounded-xl shadow-sm overflow-hidden">
+      <div v-else id="admin-companies-table" class="bg-white rounded-xl shadow-sm overflow-hidden">
         <table class="w-full">
           <thead class="bg-gray-50">
             <tr>
@@ -42,7 +54,7 @@
                 <div class="font-medium text-gray-900">{{ company.name }}</div>
               </td>
               <td class="px-6 py-4">
-                <img v-if="company.logo_url" :src="company.logo_url" class="h-10 w-10 object-contain" />
+                <img v-if="company.logo_url" :src="transformLogoUrl(company.logo_url)" class="h-10 w-10 object-contain" />
                 <span v-else class="text-gray-400">Sin logo</span>
               </td>
               <td class="px-6 py-4 text-gray-500">{{ formatDate(company.created_at) }}</td>
@@ -75,6 +87,8 @@ definePageMeta({
   middleware: ['admin']
 })
 
+const { startAdminTour } = useTutorial()
+
 const adminStore = useAdminStore()
 const authStore = useAuthStore()
 const router = useRouter()
@@ -94,6 +108,14 @@ onMounted(async () => {
     loading.value = false
   }
 })
+
+const transformLogoUrl = (logoPath: string) => {
+  if (!logoPath) return ''
+  if (logoPath.startsWith('http')) return logoPath
+  const filename = logoPath.replace('/uploads/logos/', '')
+  const config = useRuntimeConfig()
+  return `${config.public.apiBase}/public/logos/${filename}`
+}
 
 const formatDate = (date: string) => {
   if (!date) return '-'

@@ -7,7 +7,7 @@
       </div>
       <button
         @click="openModal()"
-        class="bg-primary-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-primary-700 transition"
+        class="bg-primary text-primary-content px-4 py-2 rounded-lg flex items-center gap-2 hover:opacity-90 transition"
       >
         <Icon name="heroicons:plus" class="w-5 h-5" />
         Agregar Sucursal
@@ -57,7 +57,7 @@
             <button type="button" @click="closeModal" class="flex-1 px-4 py-2 border rounded-lg hover:bg-gray-50">
               Cancelar
             </button>
-            <button type="submit" class="flex-1 bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700">
+            <button type="submit" class="flex-1 bg-primary text-primary-content px-4 py-2 rounded-lg hover:opacity-90">
               Guardar
             </button>
           </div>

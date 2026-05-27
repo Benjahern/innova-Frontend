@@ -12,6 +12,9 @@ export default defineNuxtConfig({
     '@pinia/nuxt',
     'nuxt-icon'
   ],
+  css: [
+    '~/assets/css/tour.css'
+  ],
   app: {
     head: {
       title: 'Turno - Control de Asistencia',
@@ -27,4 +30,4 @@ export default defineNuxtConfig({
     }
   },
   compatibilityDate: '2024-11-01'
-})
+})

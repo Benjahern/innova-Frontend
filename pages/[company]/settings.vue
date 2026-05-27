@@ -70,7 +70,7 @@
       </div>
 
       <div class="flex justify-end gap-4">
-        <button type="submit" :disabled="loading" class="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50">
+        <button type="submit" :disabled="loading" class="px-6 py-2 bg-primary text-primary-content rounded-lg hover:opacity-90 disabled:opacity-50">
           {{ loading ? 'Guardando...' : 'Guardar Cambios' }}
         </button>
       </div>

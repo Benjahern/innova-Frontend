@@ -15,7 +15,7 @@
         </button>
         <button
           @click="openShiftModal()"
-          class="bg-primary-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-primary-700 transition"
+          class="bg-primary text-primary-content px-4 py-2 rounded-lg flex items-center gap-2 hover:opacity-90 transition"
         >
           <Icon name="heroicons:plus" class="w-5 h-5" />
           Agregar Turno
@@ -70,7 +70,7 @@
     <!-- Shifts Section -->
     <div>
       <h2 class="text-lg font-semibold text-gray-700 mb-4 flex items-center gap-2">
-        <Icon name="heroicons:clock" class="w-5 h-5 text-blue-500" />
+        <Icon name="heroicons:clock" class="w-5 h-5 text-primary" />
         Turnos
       </h2>
 
@@ -100,14 +100,14 @@
               <span :class="[
                 'px-2 py-0.5 text-xs rounded-full',
                 shift.shift_type === 'rotating' ? 'bg-purple-100 text-purple-700' :
-                shift.shift_type === 'flexible' ? 'bg-blue-100 text-blue-700' :
+                shift.shift_type === 'flexible' ? 'bg-primary/10 text-primary' :
                 'bg-gray-100 text-gray-700'
               ]">
                 {{ shift.shift_type === 'rotating' ? 'Rotativo' : shift.shift_type === 'flexible' ? 'Flexible' : 'Fijo' }}
               </span>
             </div>
             <div class="flex gap-1">
-              <button @click="openShiftModal(shift)" class="text-gray-400 hover:text-primary-600 p-1">
+              <button @click="openShiftModal(shift)" class="text-gray-400 hover:text-primary p-1">
                 <Icon name="heroicons:pencil" class="w-4 h-4" />
               </button>
               <button @click="confirmDeleteShift(shift)" class="text-gray-400 hover:text-red-600 p-1">
@@ -268,7 +268,7 @@
               <label v-for="day in weekDays" :key="day.value" class="flex items-center gap-2 px-3 py-2 border rounded-lg cursor-pointer hover:bg-gray-50"
                 :class="shiftForm.days.includes(day.value) ? 'bg-primary-50 border-primary-500' : ''">
                 <input type="checkbox" :value="day.value" v-model="shiftForm.days"
-                  class="rounded text-primary-600" />
+                  class="rounded text-primary" />
                 <span class="text-sm">{{ day.label }}</span>
               </label>
             </div>
@@ -287,7 +287,7 @@
           </div>
 
           <div class="flex items-center gap-2">
-            <input type="checkbox" id="is_active" v-model="shiftForm.is_active" class="rounded text-primary-600" />
+            <input type="checkbox" id="is_active" v-model="shiftForm.is_active" class="rounded text-primary" />
             <label for="is_active" class="text-sm font-medium text-gray-700">Turno activo</label>
           </div>
 
@@ -297,7 +297,7 @@
               Cancelar
             </button>
             <button type="submit"
-              class="flex-1 bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700">
+              class="flex-1 bg-primary text-primary-content px-4 py-2 rounded-lg hover:opacity-90">
               Guardar
             </button>
           </div>

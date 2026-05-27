@@ -125,6 +125,14 @@ const error = ref('')
 const companyLogoUrl = ref('')
 const logoFile = ref<File | null>(null)
 
+const transformLogoUrl = (logoPath: string | null) => {
+  if (!logoPath) return ''
+  if (logoPath.startsWith('http')) return logoPath
+  const filename = logoPath.replace('/uploads/logos/', '')
+  const config = useRuntimeConfig()
+  return `${config.public.apiBase}/public/logos/${filename}`
+}
+
 const form = ref({
   name: '',
   logo_url: '',
@@ -177,7 +185,7 @@ onMounted(async () => {
       form.value.default_start_time = company.default_start_time || '10:00'
       form.value.default_end_time = company.default_end_time || ''
       form.value.work_hours_per_week = company.work_hours_per_week || 42
-      companyLogoUrl.value = company.logo_url || ''
+      companyLogoUrl.value = transformLogoUrl(company.logo_url)
 
       // Parse config if exists
       if (company.config) {

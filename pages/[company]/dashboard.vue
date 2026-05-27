@@ -11,11 +11,11 @@
         <div class="flex items-center justify-between">
           <div>
             <p class="text-sm text-gray-500">Trabajadores Presentes</p>
-            <p class="text-3xl font-bold text-primary-600">{{ dashboard?.workers_present || 0 }}</p>
+            <p class="text-3xl font-bold" :style="{ color: themeColors.primary }">{{ dashboard?.workers_present || 0 }}</p>
             <p class="text-xs text-gray-400">de {{ dashboard?.total_workers || 0 }} total</p>
           </div>
-          <div class="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center">
-            <Icon name="heroicons:user-group" class="w-6 h-6 text-primary-600" />
+          <div class="w-12 h-12 rounded-full flex items-center justify-center" :style="{ backgroundColor: hexToRgba(themeColors.primary, 0.15) }">
+            <Icon name="heroicons:user-group" class="w-6 h-6" :style="{ color: themeColors.primary }" />
           </div>
         </div>
       </div>
@@ -24,10 +24,10 @@
         <div class="flex items-center justify-between">
           <div>
             <p class="text-sm text-gray-500">Horas Semana</p>
-            <p class="text-3xl font-bold text-blue-500">{{ (dashboard?.total_hours_week || 0).toFixed(1) }}h</p>
+            <p class="text-3xl font-bold text-primary">{{ (dashboard?.total_hours_week || 0).toFixed(1) }}h</p>
           </div>
-          <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-            <Icon name="heroicons:clock" class="w-6 h-6 text-blue-500" />
+          <div class="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
+            <Icon name="heroicons:clock" class="w-6 h-6 text-primary" />
           </div>
         </div>
       </div>
@@ -82,8 +82,8 @@
             class="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
           >
             <div class="flex items-center gap-3">
-              <div class="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center">
-                <span class="text-primary-700 font-medium text-sm">{{ worker.name.charAt(0) }}</span>
+              <div class="w-8 h-8 rounded-full flex items-center justify-center" :style="{ backgroundColor: hexToRgba(themeColors.primary, 0.15) }">
+                <span class="font-medium text-sm" :style="{ color: themeColors.primary }">{{ worker.name.charAt(0) }}</span>
               </div>
               <div>
                 <p class="font-medium text-gray-800 text-sm">{{ worker.name }}</p>
@@ -132,8 +132,8 @@
             >
               <td class="py-3 px-4">
                 <div class="flex items-center gap-3">
-                  <div class="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center">
-                    <span class="text-primary-700 font-medium text-sm">{{ worker.name.charAt(0) }}</span>
+                  <div class="w-8 h-8 rounded-full flex items-center justify-center" :style="{ backgroundColor: hexToRgba(themeColors.primary, 0.15) }">
+                    <span class="font-medium text-sm" :style="{ color: themeColors.primary }">{{ worker.name.charAt(0) }}</span>
                   </div>
                   <span class="font-medium text-gray-800">{{ worker.name }}</span>
                 </div>
@@ -164,10 +164,13 @@
 
 <script setup>
 import { Chart, registerables } from 'chart.js'
+import { useCompanyTheme } from '~/composables/useCompanyTheme'
 
 definePageMeta({
   ssr: false
 })
+
+const { themeColors, hexToRgba } = useCompanyTheme()
 
 Chart.register(...registerables)
 
@@ -216,7 +219,7 @@ const initChart = () => {
       datasets: [{
         label: 'Horas esta semana',
         data: hoursData,
-        backgroundColor: hoursData.map(h => h >= 40 ? '#22c55e' : '#f97316'),
+        backgroundColor: hoursData.map(h => h >= 40 ? '#22c55e' : themeColors.value.primary),
         borderRadius: 6,
         barThickness: 40
       }]
@@ -256,9 +259,9 @@ const loadDashboard = async () => {
   }
 }
 
-watch(dashboard, () => {
+watch([dashboard, () => themeColors.value.primary], () => {
   nextTick(() => initChart())
-})
+}, { deep: true })
 
 onMounted(() => {
   loadDashboard()

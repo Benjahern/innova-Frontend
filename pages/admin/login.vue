@@ -7,7 +7,7 @@
       </div>
 
       <form @submit.prevent="handleLogin" class="space-y-6">
-        <div>
+        <div id="admin-login-email">
           <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
           <input
             v-model="email"
@@ -18,7 +18,7 @@
           />
         </div>
 
-        <div>
+        <div id="admin-login-password">
           <label class="block text-sm font-medium text-gray-700 mb-2">Contrasena</label>
           <input
             v-model="password"
@@ -34,6 +34,7 @@
         </div>
 
         <button
+          id="admin-login-btn"
           type="submit"
           :disabled="loading"
           class="w-full bg-gray-800 text-white py-3 rounded-lg font-semibold hover:bg-gray-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
@@ -42,8 +43,23 @@
         </button>
       </form>
 
-      <div class="mt-6 text-center text-sm text-gray-500">
-        <NuxtLink to="/" class="text-primary-600 hover:underline">← Volver al inicio</NuxtLink>
+      <div class="mt-6 pt-5 border-t border-gray-100 space-y-3">
+        <div class="text-center">
+          <button
+            type="button"
+            @click="startAdminLoginTour"
+            class="text-sm text-gray-400 hover:text-gray-700 transition-colors flex items-center gap-1 mx-auto"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            ¿Cómo funciona?
+          </button>
+        </div>
+        <div class="text-center text-sm text-gray-500">
+          <NuxtLink to="/" class="text-primary-600 hover:underline">← Volver al inicio</NuxtLink>
+        </div>
       </div>
     </div>
   </div>
@@ -53,6 +69,8 @@
 definePageMeta({
   layout: false
 })
+
+const { startAdminLoginTour } = useTutorial()
 
 const { loginAsSuperAdmin } = useAdminApi()
 const router = useRouter()

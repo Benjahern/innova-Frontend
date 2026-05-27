@@ -57,7 +57,7 @@ export const useAdminStore = defineStore('admin', {
       const requestHeaders = useRequestHeaders(['cookie'])
 
       try {
-        await $fetch(`${config.public.apiBase}/admin/companies`, {
+        const response = await $fetch<Company>(`${config.public.apiBase}/admin/companies`, {
           method: 'POST',
           headers: {
             Authorization: `Bearer ${authStore.accessToken}`,
@@ -66,6 +66,7 @@ export const useAdminStore = defineStore('admin', {
           body: data
         })
         await this.fetchCompanies()
+        return response
       } catch (e: any) {
         this.error = e.data?.message || 'Failed to create company'
         throw e

@@ -7,7 +7,7 @@ export const useAdminApi = () => {
   const apiBase = config.public.apiBase
 
   const fetchCompanyConfig = async (companyName: string): Promise<any> => {
-    const response = await $fetch(`${apiBase}/public/companies/${companyName}/config`)
+    const response = await $fetch(`${apiBase}/public/companies/${encodeURIComponent(companyName)}/config`)
     return response
   }
 

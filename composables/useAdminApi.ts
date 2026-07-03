@@ -4,7 +4,10 @@ export const useAdminApi = () => {
   const authStore = useAuthStore()
   const config = useRuntimeConfig()
 
-  const apiBase = config.public.apiBase
+  // En SSR usa la URL interna; en browser usa la URL pública
+  const apiBase = import.meta.server
+    ? (config.serverApiBase as string || config.public.apiBase)
+    : config.public.apiBase
 
   const fetchCompanyConfig = async (companyName: string): Promise<any> => {
     const response = await $fetch(`${apiBase}/public/companies/${encodeURIComponent(companyName)}/config`)

@@ -212,7 +212,12 @@ const handleSubmit = async () => {
   error.value = ''
 
   try {
-    const company = await adminStore.createCompany(form.value)
+    const payload = {
+      ...form.value,
+      default_start_time: form.value.default_start_time || null,
+      default_end_time: form.value.default_end_time || null
+    }
+    const company = await adminStore.createCompany(payload)
     if (logoFile.value && company && company.company_id) {
       const formData = new FormData()
       formData.append('logo', logoFile.value)

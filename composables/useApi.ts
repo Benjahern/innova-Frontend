@@ -3,6 +3,10 @@ export const useApi = () => {
   const authStore = useAuthStore()
   const route = useRoute()
 
+  const baseUrl = import.meta.server
+    ? (config.serverApiBase as string || config.public.apiBase)
+    : config.public.apiBase
+
   const fetchWithAuth = async (url, options = {}) => {
     // SSR: forward request headers (including cookies) for auth
     const requestHeaders = useRequestHeaders(['cookie'])
@@ -15,7 +19,7 @@ export const useApi = () => {
     }
 
     try {
-      const response = await $fetch(`${config.public.apiBase}${url}`, {
+      const response = await $fetch(`${baseUrl}${url}`, {
         method: options.method || 'GET',
         body: options.body,
         headers

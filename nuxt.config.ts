@@ -24,10 +24,22 @@ export default defineNuxtConfig({
       ]
     }
   },
+  nitro: {
+    devProxy: {
+      '/api': {
+        target: process.env.BACKEND_URL || 'http://localhost:8080',
+        changeOrigin: true
+      }
+    }
+  },
   runtimeConfig: {
+    serverApiBase: process.env.SERVER_API_BASE || 'http://localhost:8080/api/v1',
     public: {
-      apiBase: process.env.API_BASE || 'http://localhost:8080/api/v1'
+      // Público: lo usa el browser (debe ser accesible desde fuera)
+      apiBase: process.env.API_BASE || 'http://localhost:8080/api/v1',
+      clarityId: process.env.NUXT_PUBLIC_CLARITY_ID || ''
     }
   },
   compatibilityDate: '2024-11-01'
-})
+})
+

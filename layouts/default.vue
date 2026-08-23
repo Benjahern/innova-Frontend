@@ -70,7 +70,7 @@ const hexToRgbStr = (hex) => {
 }
 
 const isCompanyRoute = computed(() => {
-  return route.path.match(/^\/[^/]+\/(dashboard|workers|attendance|shifts|branches|settings)$/)
+  return route.path.match(/^\/[^/]+\/(dashboard|workers|attendance|shifts|weekly-schedule|branches|settings)$/)
 })
 
 const rootStyles = computed(() => {
@@ -111,6 +111,7 @@ const menuItems = computed(() => {
     { path: `/${company.value}/branches`, label: 'Sucursales', icon: 'heroicons:building-office', id: 'sidebar-branches-link' },
     { path: `/${company.value}/workers`, label: 'Trabajadores', icon: 'heroicons:users', id: 'sidebar-workers-link' },
     { path: `/${company.value}/shifts`, label: 'Turnos', icon: 'heroicons:calendar', id: 'sidebar-shifts-link' },
+    { path: `/${company.value}/weekly-schedule`, label: 'Malla semanal', icon: 'heroicons:calendar-days', id: 'sidebar-weekly-schedule-link' },
     { path: `/${company.value}/attendance`, label: 'Asistencia', icon: 'heroicons:clock', id: 'sidebar-attendance-link' },
     { path: `/${company.value}/settings`, label: 'Configuracion', icon: 'heroicons:cog-6-tooth', id: 'sidebar-settings-link' }
   ]

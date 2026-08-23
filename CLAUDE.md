@@ -1,79 +1,85 @@
 ---
-name: Turno Frontend
-description: Frontend Vue 3 + Nuxt del sistema Turnos
+name: TurnoLegal Frontend
+description: Frontend Nuxt 3 de TurnoLegal
 type: project
 ---
 
-# Frontend - Turno
+# TurnoLegal Frontend
 
-## Tech Stack
-- Vue 3 + Nuxt
-- TailwindCSS
-- Pinia (stores)
-- nuxt-icon (iconos heroicons)
-- TypeScript
+## Stack y estructura
 
-## Rutas
+- Nuxt 3, Vue 3 y TypeScript.
+- Tailwind CSS para estilos; Heroicons mediante `nuxt-icon`.
+- Pinia: `stores/auth.ts` mantiene sesión y tokens; `stores/admin.ts` administra empresas.
+- Chart.js para visualizaciones del Dashboard.
+- `pages/` define rutas, `layouts/default.vue` contiene la navegación empresarial, `components/weekly-schedule/` contiene la UI de malla, `composables/useApi.ts` centraliza HTTP autenticado y `composables/useWeeklySchedule.ts` encapsula el contrato de mallas.
+- Tipos de dominio en `types/dashboard.ts` y `types/weekly-schedule.ts`.
+- `middleware/auth.global.ts` protege la sesión; las páginas empresariales usan el parámetro `[company]` y se renderizan con `ssr: false`.
 
-```
-pages/
-├── index.vue                    # Login empresa
-├── admin/
-│   ├── index.vue               # Lista empresas
-│   ├── login.vue              # Login super-admin
-│   └── create/index.vue       # Crear empresa
-└── [company]/
-    ├── dashboard.vue          # Dashboard
-    ├── attendance.vue         # Registro de asistencia
-    ├── workers.vue            # Gestión trabajadores
-    ├── branches.vue           # Sucursales
-    └── settings.vue          # Config empresa
-```
+## Rutas actuales
 
-## Worker Types (workers.vue)
+| Ruta | Archivo | Propósito |
+|---|---|---|
+| `/:company/dashboard` | `pages/[company]/dashboard.vue` | Planificación publicada y asistencia semanal |
+| `/:company/workers` | `pages/[company]/workers.vue` | Trabajadores |
+| `/:company/shifts` | `pages/[company]/shifts.vue` | Plantillas de turnos |
+| `/:company/weekly-schedule` | `pages/[company]/weekly-schedule.vue` | Malla semanal |
+| `/:company/attendance` | `pages/[company]/attendance.vue` | Asistencia |
+| `/:company/settings` | `pages/[company]/settings.vue` | Configuración empresarial |
+| `/:company/branches` | `pages/[company]/branches.vue` | Sucursales |
+| `/:company/login` | `pages/[company]/login.vue` | Login empresarial |
+| `/admin/login` | `pages/admin/login.vue` | Login de administración |
+| `/admin` | `pages/admin/index.vue` | Empresas administradas |
+| `/admin/create` | `pages/admin/create/index.vue` | Creación de empresa |
+| `/admin/:id/edit` | `pages/admin/[id]/edit.vue` | Edición de empresa |
 
-Al crear/editar trabajadores, hay un selector de **Tipo de Jornada**:
+Los datos de empresas diferentes nunca deben mezclarse: toda navegación, carga y mutación debe conservar el contexto de `:company` y el token correspondiente.
 
-| Valor | Descripción |
-|------|-------------|
-| `fixed` | Horario fijo — se marca `is_late` si llega después de la hora de entrada |
-| `flexible` | Horario flexible — se miden horas trabajadas, no llegada |
-| `external` | Externo — sin control de horario |
+## Planificación semanal oficial
 
-La tabla muestra badges de colores:
-- Verde: `flexible`
-- Naranja: `external`
-- Sin badge: `fixed` (default)
+La malla semanal es la fuente de planificación trabajador-fecha. Su flujo es:
 
-## Configuración de Almuerzo (settings.vue)
-
-Antes: "Duración almuerzo (min)" — un número fijo
-
-Ahora: "Hora inicio almuerzo" + "Hora fin almuerzo"
-
-```
-Empresa (company.lunch_start/lunch_end)
-└── Si no existe → Default 13:00-14:00
+```text
+draft → invalid → validated → published
 ```
 
-El shift del worker puede tener sus propios `lunch_start`/`lunch_end` que prevalecen sobre los de la empresa.
+- Una malla `invalid` no puede publicarse.
+- El backend es la única autoridad para validación legal, infracciones, estado, versión y publicación. El frontend presenta sus resultados; no calcula ni infiere legalidad.
+- Toda mutación de asignaciones debe enviar `expected_version` tomado de `schedule.version`. Tras un conflicto HTTP 409, se debe recargar la malla y explicar el conflicto en español.
+- Las mallas `published` son históricas y de solo lectura.
+- Los totales visuales pueden sumar exclusivamente `assignment.effective_minutes`; esa suma no determina validez.
+- Las opciones de una celda deben respetar `shift.days`, normalizando espacios y mayúsculas. Un arreglo ausente, nulo o vacío significa disponibilidad diaria. Un turno ya asignado debe seguir visible aunque quede inactivo o incompatible.
+- No enviar desde el cliente `company_id`, snapshots, `effective_minutes` ni límites, excesos o datos legales calculados.
+- No reintroducir `user_shifts` ni la asignación directa del trabajador como fuente de planificación. `work_shifts` son plantillas reutilizables; la asignación oficial corresponde a la malla semanal publicada.
 
-## Stores
-- `useAuthStore` — accessToken, user info, restoreSession
-- `useAdminStore` — manage companies
+## HTTP, idioma y concurrencia
 
-## API
-- Usa `useApi()` composable para requests
-- Base URL: `useRuntimeConfig().public.apiBase`
+- Usar `useApi()` para conservar base URL, autenticación y manejo común de solicitudes.
+- Mantener las infracciones estructuradas que entregue el backend, incluso si falla una publicación.
+- Distinguir una validación ejecutada con `valid: false` de un error técnico: las infracciones se muestran en su panel y no como éxito ni como fallo de transporte.
+- Bloquear acciones concurrentes que puedan reutilizar la misma versión; después de mutar, reemplazar el estado local con la malla recargada.
+- Todos los mensajes visibles, traducciones de estados y errores comprensibles deben estar en español. No exponer códigos técnicos ni mensajes internos directamente.
 
-## Iconos
-- Usar `heroicons` (no Phosphor)
-- Ejemplo: `<Icon name="heroicons:user-plus" class="w-5 h-5" />`
+## Verificación mediante Docker
 
-## Formato Hora
-- Inputs `type="time"` con `lang="en"` para formato 24h
-- Placeholder: `placeholder="09:00"`
+```powershell
+git diff --check
+docker compose build frontend
+git status --short
+```
 
-## Notas
-- No hacer fetchBlob directo — usar `api.fetchBlob()`
-- JWT se guarda en cookie o localStorage según configuración del auth store
+El build válido debe terminar con `Build complete!` y `frontend Built`. Para desarrollo con montaje y HMR:
+
+```powershell
+docker compose --profile dev up --build frontend-dev
+```
+
+En Docker Desktop sobre Windows, si un cambio no aparece pese al bind mount, reiniciar `frontend-dev`; la detección HMR puede no recibir eventos del sistema de archivos.
+
+## Pendientes y límites conocidos
+
+- `workers.vue` todavía contiene UI y llamadas legacy de asignación directa de turno; deben retirarse conservando `worker_type`.
+- `attendance.vue` aún requiere adaptación completa al contrato que separa planificación publicada y asistencia; no debe inferir horarios desde `user_shifts`.
+- `shifts.vue` requiere normalizar horas con segundos o microsegundos al editar, preservar todos los campos en actualizaciones parciales y completar traducciones.
+- La malla publicada debe terminar de derivar sus filas del historial de asignaciones, no de la lista actual de trabajadores.
+- Persisten tareas de limpieza visual e idioma, mojibake y advertencias de URLs de logos. Deben abordarse de forma acotada sin alterar las reglas de planificación anteriores.

@@ -132,7 +132,8 @@ const handleLogout = async () => {
 
 onMounted(async () => {
   authStore.restoreSession()
-  if (company.value) {
+  const isLoginRoute = route.path.endsWith('/login') || route.path === '/' || route.path.endsWith('/admin/login')
+  if (company.value && !isLoginRoute) {
     await loadCompany(company.value)
   }
 })

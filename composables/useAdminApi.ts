@@ -10,8 +10,16 @@ export const useAdminApi = () => {
     : config.public.apiBase
 
   const fetchCompanyConfig = async (companyName: string): Promise<any> => {
-    const response = await $fetch(`${apiBase}/public/companies/${encodeURIComponent(companyName)}/config`)
-    return response
+    try {
+      const response = await $fetch(`${apiBase}/public/companies/${encodeURIComponent(companyName)}/config`)
+      return response
+    } catch (error: any) {
+      const status = error?.response?.status ?? error?.statusCode
+      if (status === 404) {
+        return null
+      }
+      throw error
+    }
   }
 
   const loginAsSuperAdmin = async (email: string, password: string) => {

@@ -14,10 +14,18 @@ export const useCompanyTheme = () => {
     isLoading.value = true
     try {
       const data = await fetchCompanyConfig(companyIdentifier)
+      if (!data) {
+        companyData.value = null
+        companyConfig.value = {}
+        return
+      }
       companyData.value = data.company
       companyConfig.value = data.config || {}
-    } catch (e) {
-      console.error('Error loading company data:', e)
+    } catch (e: any) {
+      const status = e?.response?.status ?? e?.statusCode
+      if (status !== 404) {
+        console.error('Error loading company data:', e)
+      }
     } finally {
       isLoading.value = false
     }

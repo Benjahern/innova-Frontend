@@ -1,23 +1,61 @@
+name: innova-frontend
+
 services:
+  # Servicio de PRODUCCIÓN — build optimizado (Dockerfile, multi-stage,
+  # sin código fuente montado). Es el que se levanta por defecto con
+  # "docker compose up".
   frontend:
     build:
       context: ..
-      dockerfile: Dockerfile.dev
+      dockerfile: Dockerfile
     container_name: innova-frontend
     restart: unless-stopped
     environment:
-      NODE_ENV: ${NODE_ENV}
-      NUXT_HOST: ${NUXT_HOST}
-      NUXT_PORT: ${NUXT_PORT}
-      BACKEND_URL: ${BACKEND_URL}
-      SERVER_API_BASE: ${SERVER_API_BASE}
-      API_BASE: ${API_BASE}
-      NUXT_PUBLIC_CLARITY_ID: ${NUXT_PUBLIC_CLARITY_ID}
+      NODE_ENV: ${NODE_ENV:-production}
+      NUXT_HOST: ${NUXT_HOST:-0.0.0.0}
+      NUXT_PORT: ${NUXT_PORT:-3000}
+      BACKEND_URL: ${BACKEND_URL:-}
+      SERVER_API_BASE: "${SERVER_API_BASE:?SERVER_API_BASE es obligatoria - URL del backend alcanzable desde DENTRO del contenedor del frontend}"
+      API_BASE: "${API_BASE:?API_BASE es obligatoria - URL publica del backend, alcanzable desde el navegador del usuario. NUNCA localhost en un servidor real}"
+      NUXT_PUBLIC_CLARITY_ID: ${NUXT_PUBLIC_CLARITY_ID:-}
+    ports:
+      - "3000:3000"
+    networks:
+      - innova
+
+  # Solo desarrollo local: hot reload, código fuente montado por bind-mount.
+  # No se levanta con "docker compose up" — hace falta el profile "dev":
+  #   docker compose --profile dev up --build frontend-dev
+  frontend-dev:
+    profiles: ["dev"]
+    build:
+      context: ..
+      dockerfile: Dockerfile.dev
+    container_name: innova-frontend-dev
+    environment:
+      NODE_ENV: development
+      NUXT_HOST: ${NUXT_HOST:-0.0.0.0}
+      NUXT_PORT: ${NUXT_PORT:-3000}
+      BACKEND_URL: ${BACKEND_URL:-}
+      SERVER_API_BASE: ${SERVER_API_BASE:-http://localhost:8080/api/v1}
+      API_BASE: ${API_BASE:-http://localhost:8080/api/v1}
+      NUXT_PUBLIC_CLARITY_ID: ${NUXT_PUBLIC_CLARITY_ID:-}
     ports:
       - "3000:3000"
     volumes:
       - ..:/app
       - frontend_node_modules:/app/node_modules
+    networks:
+      - innova
+
+networks:
+  # Red compartida con el stack del backend (Innova-Backend/deploy), para
+  # que SERVER_API_BASE pueda apuntar al nombre de servicio "backend" en
+  # vez de una IP/dominio público. Se crea una sola vez, a mano, antes de
+  # levantar cualquiera de los dos stacks:
+  #   docker network create innova
+  innova:
+    external: true
 
 volumes:
   frontend_node_modules:

@@ -339,6 +339,13 @@ const initChart = () => {
 const loadDashboard = async () => {
   loading.value = true
   error.value = false
+  const authStore = useAuthStore()
+  authStore.restoreSession()
+  if (!authStore.accessToken) {
+    loading.value = false
+    error.value = true
+    return
+  }
   try {
     const api = useApi()
     dashboard.value = await api.get('/dashboard') as DashboardSummary

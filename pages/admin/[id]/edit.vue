@@ -1,114 +1,219 @@
 <template>
   <div class="min-h-screen bg-gray-100">
-    <nav class="bg-white shadow-sm">
-      <div class="max-w-7xl mx-auto px-4 py-4 flex items-center gap-4">
-        <NuxtLink to="/admin" class="text-gray-600 hover:text-gray-800">
-          <Icon name="heroicons:arrow-left" class="w-6 h-6" />
+    <header class="bg-white shadow-sm">
+      <div class="mx-auto flex max-w-7xl items-center gap-4 px-4 py-4">
+        <NuxtLink
+          to="/admin"
+          class="rounded-lg p-2 text-gray-600 transition hover:bg-gray-100 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+          aria-label="Volver al listado de empresas"
+        >
+          <Icon name="heroicons:arrow-left" class="h-6 w-6" />
         </NuxtLink>
-        <h1 class="text-2xl font-bold text-gray-800">Editar Empresa</h1>
+        <div>
+          <p class="text-sm font-medium text-primary-700">Panel de administración</p>
+          <h1 class="text-2xl font-bold text-gray-900">Editar empresa</h1>
+        </div>
       </div>
-    </nav>
+    </header>
 
-    <div v-if="loading" class="max-w-3xl mx-auto px-4 py-8 text-center">
-      <span class="text-gray-500">Cargando...</span>
-    </div>
+    <main class="mx-auto max-w-5xl px-4 py-8">
+      <div v-if="loading" class="rounded-2xl border border-gray-200 bg-white p-8 text-center shadow-sm" role="status" aria-live="polite">
+        <span class="text-gray-600">Cargando empresa...</span>
+      </div>
 
-    <div v-else-if="error" class="max-w-3xl mx-auto px-4 py-8">
-      <div class="bg-red-50 text-red-600 p-4 rounded-lg mb-4">{{ error }}</div>
-      <NuxtLink to="/admin" class="text-primary-600 hover:underline">← Volver a empresas</NuxtLink>
-    </div>
+      <div v-else-if="loadError" class="mx-auto max-w-2xl rounded-2xl border border-red-200 bg-white p-8 text-center shadow-sm">
+        <h2 class="text-xl font-bold text-gray-900">No se pudo cargar la empresa</h2>
+        <p class="mt-2 text-gray-600">{{ loadError }}</p>
+        <NuxtLink to="/admin" class="mt-6 inline-flex rounded-lg bg-primary-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2">Volver a empresas</NuxtLink>
+      </div>
 
-    <div v-else class="max-w-3xl mx-auto px-4 py-8">
-      <form @submit.prevent="handleSubmit" class="bg-white rounded-xl shadow-sm p-6 space-y-6">
-        <!-- Company Info -->
-        <div class="border-b pb-4">
-          <h3 class="text-lg font-semibold text-gray-700 mb-4">Informacion de la Empresa</h3>
+      <div v-else-if="successMessage" class="mx-auto max-w-2xl rounded-2xl border border-green-200 bg-white p-8 text-center shadow-sm" role="status" aria-live="polite">
+        <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-green-100 text-green-700">
+          <Icon name="heroicons:check" class="h-8 w-8" aria-hidden="true" />
+        </div>
+        <h2 class="mt-5 text-2xl font-bold text-gray-900">Cambios guardados</h2>
+        <p class="mt-3 text-gray-600">{{ successMessage }}</p>
+        <div v-if="logoUploadError" class="mt-5 rounded-xl border border-amber-200 bg-amber-50 p-4 text-left" role="alert">
+          <p class="font-medium text-amber-900">El logo no se pudo subir</p>
+          <p class="mt-1 text-sm text-amber-800">Los cambios de la empresa están guardados. Puedes reintentar la subida o continuar sin logo.</p>
+          <div class="mt-4 flex flex-wrap gap-3">
+            <button type="button" class="rounded-lg bg-amber-700 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-800 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 disabled:opacity-50" :disabled="uploadingLogo" @click="retryLogo">{{ uploadingLogo ? 'Subiendo...' : 'Reintentar logo' }}</button>
+            <button type="button" class="rounded-lg border border-amber-300 bg-white px-4 py-2 text-sm font-semibold text-amber-900 hover:bg-amber-100 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2" @click="goToCompanies">Continuar sin logo</button>
+          </div>
+        </div>
+        <button type="button" class="mt-6 rounded-lg bg-primary-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2" @click="goToCompanies">Ver empresas</button>
+      </div>
 
-          <div class="grid grid-cols-2 gap-4">
-            <div class="col-span-2">
-              <label class="block text-sm font-medium text-gray-700 mb-2">Nombre de la Empresa *</label>
-              <input v-model="form.name" type="text" required class="w-full px-4 py-2 border rounded-lg" />
-            </div>
+      <form v-else class="space-y-6" novalidate @submit.prevent="handleSubmit">
+        <section class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6" aria-labelledby="company-edit-info-title">
+          <div class="mb-6">
+            <p class="text-sm font-semibold text-primary-700">Información de la empresa</p>
+            <h2 id="company-edit-info-title" class="mt-1 text-xl font-bold text-gray-900">Datos y horario</h2>
+            <p class="mt-1 text-sm text-gray-500">Actualiza la información que se usará como predeterminada.</p>
+          </div>
+
+          <div class="space-y-6">
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">Hora de inicio predeterminada</label>
-              <input v-model="form.default_start_time" type="time" lang="en" step="3600" class="w-full px-4 py-2 border rounded-lg" placeholder="09:00" />
+              <label for="company-name" class="mb-2 block text-sm font-semibold text-gray-800">Nombre de la empresa <span class="text-red-600" aria-hidden="true">*</span></label>
+              <input id="company-name" v-model.trim="form.name" type="text" autocomplete="organization" :class="fieldClass('name')" :aria-invalid="Boolean(fieldErrors.name)" :aria-describedby="describedBy('name', 'company-name-help')" @input="markDirty" @blur="validateField('name')" />
+              <p id="company-name-help" class="mt-1.5 text-xs text-gray-500">Usa el nombre comercial de la empresa.</p>
+              <p v-if="fieldErrors.name" id="name-error" class="mt-1.5 text-sm text-red-600" role="alert">{{ fieldErrors.name }}</p>
             </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">Hora de salida</label>
-              <input v-model="form.default_end_time" type="time" lang="en" step="3600" class="w-full px-4 py-2 border rounded-lg" placeholder="19:00" />
+
+            <div class="grid gap-6 md:grid-cols-2">
+              <div>
+                <div class="mb-2 flex items-center justify-between gap-3">
+                  <label for="default-start-time" class="text-sm font-semibold text-gray-800">Hora de inicio <span class="text-red-600" aria-hidden="true">*</span></label>
+                  <span class="text-xs text-gray-500">24 horas</span>
+                </div>
+                <AdminTimePicker24 id="default-start-time" :model-value="form.default_start_time" label="Hora de inicio" :described-by="describedBy('default_start_time', 'default-start-help')" @update:modelValue="updateTime('default_start_time', $event)" />
+                <p id="default-start-help" class="mt-2 text-xs text-gray-500">Selecciona una hora entre 00 y 23.</p>
+                <p v-if="fieldErrors.default_start_time" id="default_start_time-error" class="mt-1.5 text-sm text-red-600" role="alert">{{ fieldErrors.default_start_time }}</p>
+              </div>
+              <div>
+                <div class="mb-2 flex items-center justify-between gap-3">
+                  <label for="default-end-time" class="text-sm font-semibold text-gray-800">Hora de salida</label>
+                  <span class="text-xs text-gray-500">Opcional</span>
+                </div>
+                <AdminTimePicker24 id="default-end-time" :model-value="form.default_end_time" label="Hora de salida" :described-by="describedBy('default_end_time', 'default-end-help')" @update:modelValue="updateTime('default_end_time', $event)" />
+                <p id="default-end-help" class="mt-2 text-xs text-gray-500">Déjala vacía si la empresa no tiene un horario fijo.</p>
+                <p v-if="fieldErrors.default_end_time" id="default_end_time-error" class="mt-1.5 text-sm text-red-600" role="alert">{{ fieldErrors.default_end_time }}</p>
+              </div>
             </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">Horas semanales</label>
-              <input v-model="form.work_hours_per_week" type="number" step="0.5" min="1" max="60" class="w-full px-4 py-2 border rounded-lg" />
+
+            <div class="rounded-xl bg-gray-50 p-4">
+              <div class="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <p class="text-sm font-semibold text-gray-800">Atajos de jornada</p>
+                  <p class="mt-1 text-xs text-gray-500">Elige un horario habitual y ajústalo si necesitas.</p>
+                </div>
+                <div class="flex flex-wrap gap-2" role="group" aria-label="Atajos de jornada">
+                  <button v-for="preset in schedulePresets" :key="preset.label" type="button" class="rounded-lg border border-gray-300 bg-white px-3 py-2 text-xs font-semibold text-gray-700 transition hover:border-primary-400 hover:text-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2" @click="applySchedule(preset)">{{ preset.label }}</button>
+                </div>
+              </div>
+              <p v-if="scheduleSummary" class="mt-4 text-sm text-gray-700" aria-live="polite"><span class="font-semibold">Jornada diaria:</span> {{ formatDuration(scheduleSummary.dailyMinutes) }}. <span class="ml-1 font-semibold">Estimación semanal:</span> {{ scheduleSummary.weeklyHours }} horas en 5 días.</p>
+              <p v-else class="mt-4 text-sm text-gray-500">Selecciona inicio y salida para ver el resumen de la jornada.</p>
+              <p v-if="scheduleSummary?.invalid" class="mt-2 text-sm text-red-600" role="alert">La hora de salida debe ser posterior a la hora de inicio.</p>
+              <p v-else-if="hasScheduleMismatch" class="mt-2 text-sm text-amber-700" role="status">La estimación semanal no coincide con las horas semanales configuradas. Revisa los datos antes de guardar.</p>
             </div>
-            <div class="col-span-2">
-              <label class="block text-sm font-medium text-gray-700 mb-2">Logo</label>
-              <input type="file" accept="image/*" @change="handleLogoFile" class="w-full px-4 py-2 border rounded-lg" />
-              <p class="text-xs text-gray-500 mt-1">Sube una imagen para reemplazar el logo actual</p>
-              <div v-if="companyLogoUrl" class="mt-2">
-                <img :src="companyLogoUrl" class="h-16 object-contain" />
+
+            <div class="grid gap-6 md:grid-cols-2">
+              <div>
+                <label for="work-hours" class="mb-2 block text-sm font-semibold text-gray-800">Horas semanales</label>
+                <div class="flex gap-2">
+                  <input id="work-hours" v-model.number="form.work_hours_per_week" type="number" min="1" max="60" step="0.5" inputmode="decimal" :class="fieldClass('work_hours_per_week')" :aria-invalid="Boolean(fieldErrors.work_hours_per_week)" :aria-describedby="describedBy('work_hours_per_week', 'work-hours-help')" @input="markDirty" @blur="validateField('work_hours_per_week')" />
+                  <span class="flex items-center rounded-lg border border-gray-200 bg-gray-50 px-3 text-sm text-gray-600">horas</span>
+                </div>
+                <p id="work-hours-help" class="mt-1.5 text-xs text-gray-500">Rango permitido: 1 a 60.</p>
+                <p v-if="fieldErrors.work_hours_per_week" id="work_hours_per_week-error" class="mt-1.5 text-sm text-red-600" role="alert">{{ fieldErrors.work_hours_per_week }}</p>
+              </div>
+
+              <div>
+                <p class="mb-2 text-sm font-semibold text-gray-800">Logo de la empresa</p>
+                <div v-if="logoPreviewUrl || companyLogoUrl" class="mb-3 flex items-center gap-4 rounded-xl border border-gray-200 bg-gray-50 p-3">
+                  <img :src="logoPreviewUrl || companyLogoUrl" alt="Vista previa del logo" class="h-20 max-w-32 object-contain" />
+                  <button type="button" class="rounded-lg border border-gray-300 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2" @click="removeLogo">Quitar logo</button>
+                </div>
+                <label for="company-logo" class="sr-only">Seleccionar logo de la empresa</label>
+                <input id="company-logo" ref="logoInput" type="file" accept="image/png,image/jpeg,image/webp" :class="fieldClass('logo')" :aria-invalid="Boolean(logoError)" :aria-describedby="describedBy('logo', 'company-logo-help')" @change="handleLogoFile" />
+                <p id="company-logo-help" class="mt-1.5 text-xs text-gray-500">PNG, JPG o WebP. Tamaño máximo: 2 MB.</p>
+                <p v-if="logoError" id="logo-error" class="mt-1.5 text-sm text-red-600" role="alert">{{ logoError }}</p>
               </div>
             </div>
           </div>
-        </div>
+        </section>
 
-        <!-- Colors Config -->
-        <div class="border-b pb-4">
-          <h3 class="text-lg font-semibold text-gray-700 mb-4">Colores de la Empresa</h3>
+        <section class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6" aria-labelledby="brand-title">
+          <div class="mb-6">
+            <p class="text-sm font-semibold text-primary-700">Identidad visual</p>
+            <h2 id="brand-title" class="mt-1 text-xl font-bold text-gray-900">Colores y marca</h2>
+            <p class="mt-1 text-sm text-gray-500">Previsualiza cómo se verá el portal de acceso.</p>
+          </div>
 
-          <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">Primario</label>
-              <input v-model="form.config.theme.primary_color" type="color" class="w-full h-10 rounded cursor-pointer" />
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">Secundario</label>
-              <input v-model="form.config.theme.secondary_color" type="color" class="w-full h-10 rounded cursor-pointer" />
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">Acento</label>
-              <input v-model="form.config.theme.accent_color" type="color" class="w-full h-10 rounded cursor-pointer" />
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">Fondo</label>
-              <input v-model="form.config.theme.background_color" type="color" class="w-full h-10 rounded cursor-pointer" />
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">Texto</label>
-              <input v-model="form.config.theme.text_color" type="color" class="w-full h-10 rounded cursor-pointer" />
+          <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-5">
+            <div v-for="color in themeColors" :key="color.key">
+              <label :for="`theme-${color.key}`" class="mb-2 block text-sm font-semibold text-gray-800">{{ color.label }}</label>
+              <div class="flex items-center gap-2 rounded-lg border border-gray-200 bg-white p-1.5 focus-within:border-primary-500 focus-within:ring-2 focus-within:ring-primary-100">
+                <input :id="`theme-${color.key}`" type="color" :value="form.config.theme[color.key]" class="h-9 w-10 cursor-pointer rounded border-0 bg-transparent p-0" @input="updateThemeColor(color.key, $event)" />
+                <span class="truncate text-xs font-medium text-gray-600">{{ form.config.theme[color.key] }}</span>
+              </div>
             </div>
           </div>
 
-          <div class="grid grid-cols-2 gap-4 mt-4">
+          <div class="mt-6 grid gap-5 md:grid-cols-2">
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">Nombre para Branding</label>
-              <input v-model="form.config.branding.company_name" type="text" class="w-full px-4 py-2 border rounded-lg" />
+              <label for="brand-company-name" class="mb-2 block text-sm font-semibold text-gray-800">Nombre para el login</label>
+              <input id="brand-company-name" v-model="form.config.branding.company_name" type="text" class="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-900 transition focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-100" placeholder="Nombre que aparece en el acceso" @input="markDirty" />
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">Tagline</label>
-              <input v-model="form.config.branding.tagline" type="text" class="w-full px-4 py-2 border rounded-lg" />
+              <label for="brand-tagline" class="mb-2 block text-sm font-semibold text-gray-800">Eslogan</label>
+              <input id="brand-tagline" v-model="form.config.branding.tagline" type="text" maxlength="80" class="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-900 transition focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-100" placeholder="Control de asistencia" @input="markDirty" />
             </div>
           </div>
-        </div>
 
-        <div v-if="error" class="bg-red-50 text-red-600 p-4 rounded-lg">
-          {{ error }}
-        </div>
+          <div class="mt-6 overflow-hidden rounded-2xl border border-gray-200" :style="{ backgroundColor: form.config.theme.background_color, color: form.config.theme.text_color }">
+            <div class="flex items-center justify-between gap-4 p-5" :style="{ backgroundColor: form.config.theme.primary_color, color: '#ffffff' }">
+              <div>
+                <p class="text-xs font-semibold uppercase tracking-wide opacity-80">Vista previa</p>
+                <p class="mt-1 text-xl font-bold">{{ displayBrandName }}</p>
+                <p class="mt-1 text-sm opacity-90">{{ form.config.branding.tagline || 'Control de asistencia' }}</p>
+              </div>
+              <span class="rounded-full px-4 py-2 text-sm font-semibold" :style="{ backgroundColor: form.config.theme.accent_color, color: form.config.theme.text_color }">Ingresar</span>
+            </div>
+            <div class="flex items-center justify-between gap-4 border-t border-black/10 p-5">
+              <p class="text-sm">Así se verá el portal de acceso.</p>
+              <button type="button" class="rounded-lg border border-current px-3 py-2 text-xs font-semibold hover:bg-black/5 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2" @click="resetTheme">Restaurar colores</button>
+            </div>
+          </div>
+          <p v-if="hasLowContrast" class="mt-3 text-sm text-amber-700" role="status">El color del texto puede tener poco contraste sobre el fondo seleccionado. Elige una combinación más legible.</p>
+        </section>
 
-        <div class="flex justify-end gap-4">
-          <NuxtLink to="/admin" class="px-6 py-2 border rounded-lg hover:bg-gray-50">Cancelar</NuxtLink>
-          <button type="submit" :disabled="loading" class="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50">
-            {{ loading ? 'Guardando...' : 'Guardar Cambios' }}
-          </button>
+        <div v-if="errorMessage" class="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700" role="alert" aria-live="assertive">{{ errorMessage }}</div>
+
+        <div class="sticky bottom-0 z-10 -mx-4 border-t border-gray-200 bg-white/95 px-4 py-4 backdrop-blur sm:-mx-6 sm:px-6">
+          <div class="mx-auto flex max-w-5xl flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+            <button type="button" class="rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2" :disabled="submitting" @click="requestCancel">Cancelar</button>
+            <button type="submit" class="rounded-lg bg-primary-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60" :disabled="submitting">{{ submitting ? 'Guardando...' : 'Guardar cambios' }}</button>
+          </div>
         </div>
       </form>
+    </main>
+
+    <div v-if="showCancelDialog" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" @click.self="showCancelDialog = false" @keydown.esc="showCancelDialog = false">
+      <div class="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl" role="dialog" aria-modal="true" aria-labelledby="cancel-dialog-title" tabindex="-1">
+        <div class="flex h-11 w-11 items-center justify-center rounded-full bg-amber-100 text-amber-700"><Icon name="heroicons:exclamation-triangle" class="h-6 w-6" aria-hidden="true" /></div>
+        <h2 id="cancel-dialog-title" class="mt-4 text-lg font-bold text-gray-900">¿Descartar los cambios?</h2>
+        <p class="mt-2 text-sm text-gray-600">Los datos ingresados se perderán y volverás al listado de empresas.</p>
+        <div class="mt-6 flex justify-end gap-3">
+          <button type="button" class="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2" @click="showCancelDialog = false">Seguir editando</button>
+          <button type="button" class="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2" @click="confirmCancel">Descartar cambios</button>
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
 import { useAdminStore } from '~/stores/admin'
 import { useAuthStore } from '~/stores/auth'
+
+type ThemeColorKey = 'primary_color' | 'secondary_color' | 'accent_color' | 'background_color' | 'text_color'
+type FieldKey = 'name' | 'default_start_time' | 'default_end_time' | 'work_hours_per_week' | 'logo' | 'brand_company_name' | 'brand_tagline'
+type FieldErrors = Partial<Record<FieldKey, string>>
+
+interface SchedulePreset {
+  label: string
+  start: string
+  end: string
+  weeklyHours: number
+}
+
+interface ApiError {
+  data?: { message?: string; field?: string; statusCode?: number }
+  statusCode?: number
+  message?: string
+}
 
 definePageMeta({
   layout: false,
@@ -119,126 +224,351 @@ const route = useRoute()
 const adminStore = useAdminStore()
 const authStore = useAuthStore()
 const router = useRouter()
+const runtimeConfig = useRuntimeConfig()
 
-const loading = ref(false)
-const error = ref('')
-const companyLogoUrl = ref('')
-const logoFile = ref<File | null>(null)
+const themeColors: Array<{ key: ThemeColorKey; label: string }> = [
+  { key: 'primary_color', label: 'Primario' },
+  { key: 'secondary_color', label: 'Secundario' },
+  { key: 'accent_color', label: 'Acento' },
+  { key: 'background_color', label: 'Fondo' },
+  { key: 'text_color', label: 'Texto' }
+]
 
-const transformLogoUrl = (logoPath: string | null) => {
-  if (!logoPath) return ''
-  if (logoPath.startsWith('http')) return logoPath
-  const filename = logoPath.replace('/uploads/logos/', '')
-  const config = useRuntimeConfig()
-  return `${config.public.apiBase}/public/logos/${filename}`
+const schedulePresets: SchedulePreset[] = [
+  { label: '08:00–16:00', start: '08:00', end: '16:00', weeklyHours: 40 },
+  { label: '08:30–17:30', start: '08:30', end: '17:30', weeklyHours: 45 },
+  { label: '09:00–18:00', start: '09:00', end: '18:00', weeklyHours: 45 },
+  { label: '09:30–18:30', start: '09:30', end: '18:30', weeklyHours: 45 }
+]
+
+const defaultTheme = {
+  primary_color: '#3B82F6',
+  secondary_color: '#1E40AF',
+  accent_color: '#60A5FA',
+  background_color: '#F3F4F6',
+  text_color: '#1F2937'
 }
 
-const form = ref({
+const form = reactive({
   name: '',
   logo_url: '',
   default_start_time: '10:00',
   default_end_time: '',
   work_hours_per_week: 42,
   config: {
-    theme: {
-      primary_color: '#3B82F6',
-      secondary_color: '#1E40AF',
-      accent_color: '#60A5FA',
-      background_color: '#F3F4F6',
-      text_color: '#1F2937'
-    },
-    branding: {
-      company_name: '',
-      tagline: 'Control de Asistencia'
-    }
-  },
-  admin_user: {
-    name: '',
-    email: '',
-    password: '',
-    rut: ''
-  },
-  branch: {
-    name: '',
-    address: ''
+    theme: { ...defaultTheme },
+    branding: { company_name: '', tagline: 'Control de asistencia' }
   }
 })
+
+const fieldErrors = reactive<FieldErrors>({})
+const errorMessage = ref('')
+const loadError = ref('')
+const loading = ref(true)
+const submitting = ref(false)
+const uploadingLogo = ref(false)
+const showCancelDialog = ref(false)
+const isDirty = ref(false)
+const successMessage = ref('')
+const logoUploadError = ref('')
+const logoError = ref('')
+const logoFile = ref<File | null>(null)
+const logoPreviewUrl = ref('')
+const logoInput = ref<HTMLInputElement | null>(null)
+const companyId = computed(() => String(route.params.id || ''))
+const companyLogoUrl = computed(() => transformLogoUrl(form.logo_url))
+const displayBrandName = computed(() => form.config.branding.company_name.trim() || form.name.trim() || 'Nombre de la empresa')
+
+const scheduleSummary = computed(() => {
+  const start = parseTime(form.default_start_time)
+  const end = parseTime(form.default_end_time)
+  if (!start || !end) return null
+  if (end <= start) return { dailyMinutes: 0, weeklyHours: 0, invalid: true }
+  const dailyMinutes = end - start
+  return { dailyMinutes, weeklyHours: Math.round((dailyMinutes / 60) * 5 * 10) / 10, invalid: false }
+})
+
+const hasScheduleMismatch = computed(() => {
+  if (!scheduleSummary.value || scheduleSummary.value.invalid) return false
+  return Math.abs(scheduleSummary.value.weeklyHours - form.work_hours_per_week) > 0.5
+})
+
+const hasLowContrast = computed(() => getContrastRatio(form.config.theme.text_color, form.config.theme.background_color) < 4.5)
+
+const parseTime = (value: string): number | null => {
+  const match = value.match(/^(\d{2}):(\d{2})/)
+  if (!match) return null
+  const hour = Number(match[1])
+  const minute = Number(match[2])
+  if (hour < 0 || hour > 23 || minute < 0 || minute > 59) return null
+  return hour * 60 + minute
+}
+
+const formatDuration = (minutes: number) => {
+  const hours = Math.floor(minutes / 60)
+  const remainingMinutes = minutes % 60
+  if (!hours) return `${remainingMinutes} min`
+  if (!remainingMinutes) return `${hours} h`
+  return `${hours} h ${remainingMinutes} min`
+}
+
+const getContrastRatio = (first: string, second: string) => {
+  const firstLuminance = getLuminance(first)
+  const secondLuminance = getLuminance(second)
+  const lighter = Math.max(firstLuminance, secondLuminance)
+  const darker = Math.min(firstLuminance, secondLuminance)
+  return (lighter + 0.05) / (darker + 0.05)
+}
+
+const getLuminance = (hex: string) => {
+  const value = hex.replace('#', '')
+  if (!/^[0-9a-fA-F]{6}$/.test(value)) return 0
+  const channels = [value.slice(0, 2), value.slice(2, 4), value.slice(4, 6)].map((channel) => {
+    const channelValue = Number.parseInt(channel, 16) / 255
+    return channelValue <= 0.03928 ? channelValue / 12.92 : ((channelValue + 0.055) / 1.055) ** 2.4
+  })
+  return channels[0] * 0.2126 + channels[1] * 0.7152 + channels[2] * 0.0722
+}
+
+const transformLogoUrl = (logoPath: string) => {
+  if (!logoPath) return ''
+  if (logoPath.startsWith('http')) return logoPath
+  const filename = logoPath.replace('/uploads/logos/', '')
+  return `${runtimeConfig.public.apiBase}/public/logos/${filename}`
+}
+
+const fieldClass = (field: FieldKey) => fieldErrors[field]
+  ? 'w-full rounded-lg border border-red-500 bg-white px-4 py-2.5 text-gray-900 transition focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-100'
+  : 'w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-gray-900 transition focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-100'
+
+const describedBy = (field: FieldKey, helper: string) => fieldErrors[field] ? `${helper} ${field.replaceAll('.', '_')}-error` : helper
+
+const markDirty = () => {
+  isDirty.value = true
+}
+
+const updateTime = (field: 'default_start_time' | 'default_end_time', value: string) => {
+  form[field] = value
+  markDirty()
+  if (field === 'default_start_time') validateField('default_start_time')
+  if (field === 'default_end_time') validateField('default_end_time')
+}
+
+const applySchedule = (preset: SchedulePreset) => {
+  form.default_start_time = preset.start
+  form.default_end_time = preset.end
+  form.work_hours_per_week = preset.weeklyHours
+  markDirty()
+  delete fieldErrors.default_start_time
+  delete fieldErrors.default_end_time
+  delete fieldErrors.work_hours_per_week
+}
+
+const updateThemeColor = (key: ThemeColorKey, event: Event) => {
+  form.config.theme[key] = (event.target as HTMLInputElement).value
+  markDirty()
+}
+
+const resetTheme = () => {
+  form.config.theme = { ...defaultTheme }
+  markDirty()
+}
 
 const handleLogoFile = (event: Event) => {
-  const target = event.target as HTMLInputElement
-  if (target.files && target.files[0]) {
-    logoFile.value = target.files[0]
-  }
-}
-
-onMounted(async () => {
-  const companyId = route.params.id
-  loading.value = true
-
-  try {
-    await adminStore.fetchCompanies()
-    const company = adminStore.companies.find(c => c.company_id === companyId)
-
-    if (company) {
-      form.value.name = company.name
-      form.value.logo_url = company.logo_url || ''
-      form.value.default_start_time = company.default_start_time || '10:00'
-      form.value.default_end_time = company.default_end_time || ''
-      form.value.work_hours_per_week = company.work_hours_per_week || 42
-      companyLogoUrl.value = transformLogoUrl(company.logo_url)
-
-      // Parse config if exists
-      if (company.config) {
-        try {
-          const config = JSON.parse(company.config)
-          if (config.theme) {
-            form.value.config.theme = { ...form.value.config.theme, ...config.theme }
-          }
-          if (config.branding) {
-            form.value.config.branding = { ...form.value.config.branding, ...config.branding }
-          }
-        } catch (e) {
-          console.error('Error parsing config:', e)
-        }
-      }
-    } else {
-      error.value = 'Empresa no encontrada'
-    }
-  } catch (e: any) {
-    error.value = e.message || 'Error al cargar empresa'
-  } finally {
-    loading.value = false
-  }
-})
-
-const handleSubmit = async () => {
-  if (!form.value.name.trim()) {
-    error.value = 'El nombre de la empresa es requerido'
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
+  logoError.value = ''
+  delete fieldErrors.logo
+  if (!file) {
+    removeLogo()
     return
   }
+  const acceptedTypes = ['image/png', 'image/jpeg', 'image/webp']
+  if (!acceptedTypes.includes(file.type)) {
+    if (logoPreviewUrl.value) URL.revokeObjectURL(logoPreviewUrl.value)
+    logoFile.value = null
+    logoPreviewUrl.value = ''
+    form.logo_url = ''
+    logoError.value = 'Selecciona una imagen PNG, JPG o WebP.'
+    fieldErrors.logo = logoError.value
+    input.value = ''
+    return
+  }
+  if (file.size > 2 * 1024 * 1024) {
+    if (logoPreviewUrl.value) URL.revokeObjectURL(logoPreviewUrl.value)
+    logoFile.value = null
+    logoPreviewUrl.value = ''
+    form.logo_url = ''
+    logoError.value = 'El logo no puede superar los 2 MB.'
+    fieldErrors.logo = logoError.value
+    input.value = ''
+    return
+  }
+  if (logoPreviewUrl.value) URL.revokeObjectURL(logoPreviewUrl.value)
+  logoFile.value = file
+  logoPreviewUrl.value = URL.createObjectURL(file)
+  form.logo_url = ''
+  markDirty()
+}
 
-  loading.value = true
-  error.value = ''
+const removeLogo = () => {
+  if (logoPreviewUrl.value) URL.revokeObjectURL(logoPreviewUrl.value)
+  logoFile.value = null
+  logoPreviewUrl.value = ''
+  form.logo_url = ''
+  logoError.value = ''
+  delete fieldErrors.logo
+  if (logoInput.value) logoInput.value.value = ''
+  markDirty()
+}
 
+const setFieldError = (field: FieldKey, message: string) => {
+  fieldErrors[field] = message
+  return false
+}
+
+const clearFieldError = (field: FieldKey) => {
+  delete fieldErrors[field]
+}
+
+const validateField = (field: FieldKey) => {
+  clearFieldError(field)
+  if (field === 'name' && !form.name.trim()) return setFieldError(field, 'Ingresa el nombre de la empresa.')
+  if (field === 'default_start_time' && !parseTime(form.default_start_time)) return setFieldError(field, 'Selecciona una hora de inicio válida.')
+  if (field === 'default_end_time') {
+    if (!form.default_end_time) return true
+    if (!parseTime(form.default_end_time)) return setFieldError(field, 'Selecciona una hora de salida válida.')
+    const start = parseTime(form.default_start_time)
+    const end = parseTime(form.default_end_time)
+    if (start !== null && end !== null && end <= start) return setFieldError(field, 'La hora de salida debe ser posterior a la hora de inicio.')
+  }
+  if (field === 'work_hours_per_week') {
+    const hours = Number(form.work_hours_per_week)
+    if (!Number.isFinite(hours) || hours < 1 || hours > 60) return setFieldError(field, 'Ingresa entre 1 y 60 horas semanales.')
+  }
+  return true
+}
+
+const validateForm = () => {
+  const fields: FieldKey[] = ['name', 'default_start_time', 'default_end_time', 'work_hours_per_week']
+  fields.forEach(validateField)
+  if (Object.keys(fieldErrors).length) {
+    nextTickFocus()
+    return false
+  }
+  return true
+}
+
+const nextTickFocus = () => {
+  nextTick(() => {
+    const firstField = Object.keys(fieldErrors)[0] as FieldKey
+    const elementId = firstField === 'default_start_time' ? 'default-start-time' : firstField === 'default_end_time' ? 'default-end-time' : firstField === 'work_hours_per_week' ? 'work-hours' : firstField
+    document.getElementById(elementId)?.focus()
+  })
+}
+
+const normalizeTimeForInput = (time: string | null) => {
+  if (!time) return ''
+  const match = time.match(/^(\d{2}:\d{2})/)
+  return match ? match[1] : ''
+}
+
+const uploadLogo = async (file: File) => {
+  const formData = new FormData()
+  formData.append('logo', file)
+  await $fetch(`${runtimeConfig.public.apiBase}/admin/companies/${companyId.value}/logo`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${authStore.accessToken}` },
+    body: formData
+  })
+}
+
+const handleSubmit = async () => {
+  errorMessage.value = ''
+  if (!validateForm()) return
+  submitting.value = true
   try {
-    const companyId = route.params.id
-    await adminStore.updateCompany(companyId, form.value)
+    await adminStore.updateCompany(companyId.value, { ...form, default_end_time: form.default_end_time || null })
     if (logoFile.value) {
-      const formData = new FormData()
-      formData.append('logo', logoFile.value)
-      await $fetch(`${useRuntimeConfig().public.apiBase}/admin/companies/${companyId}/logo`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${authStore.accessToken}`
-        },
-        body: formData
-      })
+      try {
+        await uploadLogo(logoFile.value)
+      } catch {
+        logoUploadError.value = 'Los cambios de la empresa están guardados, pero no se pudo subir el logo.'
+      }
     }
-    router.push('/admin')
-  } catch (e: any) {
-    error.value = e.data?.message || e.message || 'Error al actualizar empresa'
+    successMessage.value = `${form.name} se actualizó correctamente.`
+  } catch (error) {
+    const apiError = error as ApiError
+    errorMessage.value = apiError.data?.message || 'No se pudieron guardar los cambios.'
+  } finally {
+    submitting.value = false
+  }
+}
+
+const retryLogo = async () => {
+  if (!logoFile.value) return
+  uploadingLogo.value = true
+  logoUploadError.value = ''
+  try {
+    await uploadLogo(logoFile.value)
+    logoUploadError.value = ''
+  } catch {
+    logoUploadError.value = 'No se pudo subir el logo. Inténtalo nuevamente.'
+  } finally {
+    uploadingLogo.value = false
+  }
+}
+
+const requestCancel = () => {
+  if (isDirty.value) {
+    showCancelDialog.value = true
+    return
+  }
+  goToCompanies()
+}
+
+const confirmCancel = () => {
+  showCancelDialog.value = false
+  isDirty.value = false
+  goToCompanies()
+}
+
+const goToCompanies = () => router.push('/admin')
+
+const loadCompany = async () => {
+  loading.value = true
+  loadError.value = ''
+  try {
+    await adminStore.fetchCompanies()
+    const company = adminStore.companies.find((item) => item.company_id === companyId.value)
+    if (!company) {
+      loadError.value = 'La empresa no existe o ya no está disponible.'
+      return
+    }
+    form.name = company.name || ''
+    form.logo_url = company.logo_url || ''
+    form.default_start_time = normalizeTimeForInput(company.default_start_time) || '10:00'
+    form.default_end_time = normalizeTimeForInput(company.default_end_time)
+    form.work_hours_per_week = company.work_hours_per_week || 42
+    if (company.config) {
+      try {
+        const config = JSON.parse(company.config)
+        if (config.theme) form.config.theme = { ...defaultTheme, ...config.theme }
+        if (config.branding) form.config.branding = { company_name: '', tagline: 'Control de asistencia', ...config.branding }
+      } catch {
+        loadError.value = 'La configuración visual de la empresa no se pudo leer.'
+      }
+    }
+  } catch (error) {
+    const apiError = error as ApiError
+    loadError.value = apiError.data?.message || 'No se pudo cargar la empresa.'
   } finally {
     loading.value = false
   }
 }
+
+onMounted(loadCompany)
+onBeforeUnmount(() => {
+  if (logoPreviewUrl.value) URL.revokeObjectURL(logoPreviewUrl.value)
+})
 </script>

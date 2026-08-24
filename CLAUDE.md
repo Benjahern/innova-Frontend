@@ -60,6 +60,11 @@ draft → invalid → validated → published
 - Bloquear acciones concurrentes que puedan reutilizar la misma versión; después de mutar, reemplazar el estado local con la malla recargada.
 - Todos los mensajes visibles, traducciones de estados y errores comprensibles deben estar en español. No exponer códigos técnicos ni mensajes internos directamente.
 
+## Aprendizajes que deben preservarse
+
+- No disparar en `onMounted` (ni en un layout ni en una página) una carga de datos de empresa, tema o dashboard sin verificar antes que existe sesión (`authStore.accessToken`, tras `restoreSession()`) y que la ruta actual no es una de login. El 24‑ago se corrigió el mismo bug en cuatro commits seguidos (`97e5e3d4`, `91b3d488`, `0a3a1db4`, `cb185d6e`) tocando `layouts/default.vue`, `pages/[company]/dashboard.vue`, `useAdminApi.ts` y `useCompanyTheme.ts` por separado, en vez de fijar la regla una sola vez.
+- Un 404 de `/public/companies/:name/config` es un caso esperado (empresa sin config pública), no un error: debe resolverse como `null`/estado vacío, sin loguearlo como `console.error`.
+
 ## Verificación mediante Docker
 
 ```powershell

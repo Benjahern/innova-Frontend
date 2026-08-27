@@ -118,16 +118,16 @@
 
           <div class="space-y-2 text-sm">
             <div class="flex items-center gap-2 text-gray-600">
-              <Icon name="heroicons:clock" class="w-4 h-4" />
-              <span>{{ shift.start_time }} - {{ shift.end_time }}</span>
+              <Icon name="heroicons:clock" class="w-4 h-4 shrink-0" />
+              <span>{{ formatShiftTime(shift.start_time) }} - {{ formatShiftTime(shift.end_time) }}</span>
             </div>
             <div class="flex items-center gap-2 text-gray-600">
-              <Icon name="heroicons:calendar" class="w-4 h-4" />
+              <Icon name="heroicons:calendar" class="w-4 h-4 shrink-0" />
               <span>{{ formatDays(shift.days) }}</span>
             </div>
             <div v-if="shift.lunch_start && shift.lunch_end" class="flex items-center gap-2 text-gray-600">
-              <Icon name="heroicons:cake" class="w-4 h-4" />
-              <span>Almuerzo: {{ shift.lunch_start }} - {{ shift.lunch_end }}</span>
+              <Icon name="heroicons:clock" class="w-4 h-4 shrink-0" />
+              <span>Almuerzo: {{ formatShiftTime(shift.lunch_start) }} - {{ formatShiftTime(shift.lunch_end) }}</span>
             </div>
             <div v-if="shift.shift_type === 'rotating' && shift.pattern_name" class="flex items-center gap-2 text-purple-600">
               <Icon name="heroicons:arrows-right-left" class="w-4 h-4" />
@@ -392,6 +392,11 @@ const formatDays = (days: string[] | null): string => {
     thursday: 'Jue', friday: 'Vie', saturday: 'Sáb', sunday: 'Dom'
   }
   return days.map(d => dayLabels[d] || d).join(', ')
+}
+
+const formatShiftTime = (value: string | null | undefined): string => {
+  if (!value) return ''
+  return value.slice(0, 5)
 }
 
 const openShiftModal = (shift: any = null) => {

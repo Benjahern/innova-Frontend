@@ -9,8 +9,8 @@ RUN npm install -g pnpm
 # Copy package files
 COPY package.json pnpm-lock.yaml* ./
 
-# Install deps targeting Linux x64 musl (Alpine) so native binaries
-# like @rollup/rollup-linux-x64-musl are fetched correctly.
+# Install deps targeting Linux arm64 musl (Alpine) so native binaries
+# like @rollup/rollup-linux-arm64-musl are fetched correctly.
 # pnpm.supportedArchitectures in package.json is the official way to do this.
 RUN node -e "\
   const fs = require('fs'); \
@@ -19,7 +19,10 @@ RUN node -e "\
   pkg.pnpm.supportedArchitectures = { os: ['linux'], cpu: ['arm64'], libc: ['musl'] }; \
   fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2)); \
   " && \
-    pnpm install --frozen-lockfile
+    pnpm install --frozen-lockfile \
+      --allow-build=esbuild \
+      --allow-build=@parcel/watcher \
+      --allow-build=vue-demi
 
 # Copy source
 COPY . .

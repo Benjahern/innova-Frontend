@@ -7,7 +7,7 @@ WORKDIR /app
 RUN npm install -g pnpm
 
 # Copy package files
-COPY package.json pnpm-lock.yaml* pnpm-workspace.yaml ./
+COPY package.json pnpm-lock.yaml* pnpm-workspace.yaml .npmrc ./
 
 # Install deps targeting Linux arm64 musl (Alpine) so native binaries
 # like @rollup/rollup-linux-arm64-musl are fetched correctly.

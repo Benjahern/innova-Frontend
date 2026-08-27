@@ -94,11 +94,11 @@
             shift.is_active ? 'border-green-500' : 'border-gray-300'
           ]"
         >
-          <div class="flex items-start justify-between mb-3">
-            <div>
-              <h3 class="font-bold text-gray-800 text-lg">{{ shift.name }}</h3>
+          <div class="flex items-start justify-between mb-3 gap-2">
+            <div class="flex flex-col gap-1.5 min-w-0">
+              <h3 class="font-bold text-gray-800 text-lg leading-tight">{{ shift.name }}</h3>
               <span :class="[
-                'px-2 py-0.5 text-xs rounded-full',
+                'self-start px-2 py-0.5 text-xs rounded-full whitespace-nowrap',
                 shift.shift_type === 'rotating' ? 'bg-purple-100 text-purple-700' :
                 shift.shift_type === 'flexible' ? 'bg-primary/10 text-primary' :
                 'bg-gray-100 text-gray-700'
@@ -126,7 +126,7 @@
               <span>{{ formatDays(shift.days) }}</span>
             </div>
             <div v-if="shift.lunch_start && shift.lunch_end" class="flex items-center gap-2 text-gray-600">
-              <Icon name="heroicons:cup-sparkles" class="w-4 h-4" />
+              <Icon name="heroicons:cake" class="w-4 h-4" />
               <span>Almuerzo: {{ shift.lunch_start }} - {{ shift.lunch_end }}</span>
             </div>
             <div v-if="shift.shift_type === 'rotating' && shift.pattern_name" class="flex items-center gap-2 text-purple-600">
